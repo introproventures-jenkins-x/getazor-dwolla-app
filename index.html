@@ -221,10 +221,11 @@
           });
           
           var refreshGrid = function(e) {
-            grid.data('kendoGrid').dataSource.read()
-              .then(function() {
+            keycloak.updateToken().then(result => {
+              grid.data('kendoGrid').dataSource.read().then(function () {
                 grid.data('kendoGrid').refresh();
-            });                        
+              });                        
+            }).catch(err => alert(err));
           };
 
           function viewDocuments(e) {
