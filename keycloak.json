@@ -1,0 +1,8 @@
+{
+  "auth-server-url":"https://identity.staging.gke.cloud.introproventures.com/auth",
+  "realm":"activiti",
+  "ssl-required":"none",
+  "resource":"activiti",
+  "public-client":true,
+  "confidential-port":0
+}

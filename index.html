@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- <base href="https://getazor-dwolla-app.staging.gke.cloud.introproventures.com"> -->
+  <base href="//introproventures-jenkins-x.github.io/getazor-dwolla-app">
+  <style>html { font-size: 14px; font-family: Arial, Helvetica, sans-serif; }</style>
+  <title></title>
+  <link rel="stylesheet" href="//kendo.cdn.telerik.com/2018.3.1017/styles/kendo.common-material.min.css" />
+  <link rel="stylesheet" href="//kendo.cdn.telerik.com/2018.3.1017/styles/kendo.material.min.css" />
+  <link rel="stylesheet" href="//kendo.cdn.telerik.com/2018.3.1017/styles/kendo.material.mobile.min.css" />
+
+  <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootswatch/4.1.3/materia/bootstrap.min.css" />
+  <link rel="stylesheet" href="//unpkg.com/formiojs@latest/dist/formio.full.min.css" />
+
+  <script src="//unpkg.com/formiojs@latest/dist/formio.full.min.js"></script>
+
+  <script src="//kendo.cdn.telerik.com/2018.3.1017/js/jquery.min.js"></script>
+  <script src="//kendo.cdn.telerik.com/2018.3.1017/js/kendo.all.min.js"></script>
+
+  <script type="text/javascript" src="//identity.staging.gke.cloud.introproventures.com/auth/js/keycloak.js"></script>   
+  <style>
+      html,
+      body,
+      #example,
+      #grid
+      {
+        margin: 0;
+        padding: 0;
+        border-width: 0;
+        height: 100%; /* DO NOT USE !important for setting the Grid height! */
+      }
+
+      html
+      {
+        overflow: hidden;
+        font: 13px sans-serif;
+      }
+      #grid .k-grid-toolbar
+      {
+          padding: .6em 1.3em .6em .4em;
+      }
+      .category-label
+      {
+          vertical-align: middle;
+          padding-right: .5em;
+      }
+      #category
+      {
+          vertical-align: middle;
+      }
+      .refreshBtnContainer {
+          display: inline-block;
+      }
+      .toolbar {
+          float: right;
+      }
+  </style>    
+</head>
+<body>
+  <div id="example">
+    <div id="grid"></div>
+    <div id="formio"></div>
+    <script type="text/x-kendo-template" id="template">
+        <div class="refreshBtnContainer">
+           <img width="40" height="40" src="https://salaboy.files.wordpress.com/2018/01/acitiviti_icon_fullcolor_github_400x400.png">  
+           <font size="4em">Transfers</font>
+           <a href="\\#" class="k-pager-refresh k-link k-button k-button-icon" title="Refresh"><span class="k-icon k-i-reload"></span></a>
+        </div>
+        <div class="toolbar">
+          <input type="button" id="logout" value="Logout" style="width: 60px"/>
+        </div>
+    </script>
+    <script>
+      var baseUrl = "https://formio.staging.gke.cloud.introproventures.com";
+      var serverUrl = 'https://gateway.staging.gke.cloud.introproventures.com/notifications';
+
+      var GRAPHQL_QUERY = "query { " +
+        "transfers: ProcessInstances(where: {" +
+        "  processDefinitionKey: { EQ: \"getazor-dewolla-connector\" }" +
+        "    status: { IN: [RUNNING, COMPLETED] }" +
+        "}) {" +
+        "  items: select {" +
+        "    id" +
+        "    status" +
+        "    name" +
+        "    startDate" +
+        "    initiator" +
+        "    activities {" +
+        "      id" +
+        "      activityName" +
+        "      status" +
+        "    }" +
+        "    variables {" +
+        "      id" +
+        "      name" +
+        "      value" +
+        "    }" +
+        "  }" +
+        "}" +
+      "}";
+
+      var keycloak = Keycloak(serverUrl+'/keycloak.json');
+
+      var isAdmin = function() {
+        return keycloak.profile.username == 'testadmin';
+      };
+      
+      var loadTaskGrid = function() {
+          var dataSource = new kendo.data.DataSource({
+              transport: {
+                  read: {
+                      contentType: "application/json",
+                      url: serverUrl+"/graphql",
+                      type: "POST",
+                      data: function() {
+                        console.log('data');
+                        return { 
+                          // query: isAdmin() ? ADMIN_TASKS_QUERY : USER_TASKS_QUERY,
+                          query: GRAPHQL_QUERY,
+                          variables: {"assignee": keycloak.profile.username }
+                        };
+                      },
+                      beforeSend: function(req) {
+                          console.log('beforeSend');
+                          req.setRequestHeader('Authorization', 'Bearer '+keycloak.token);
+                      }
+                  },
+                  parameterMap: function(options, operation) {
+                      console.log('parameterMap');
+
+                      return  kendo.stringify({
+                          query: options.query,
+                          variables: options.variables
+                      });
+                  }
+              },
+              schema: {
+                  data: function(response) {
+                      console.log('response');
+                      return response.data.transfers.items; 
+                  },
+                  total: function(response) {
+                      console.log('total');
+                      return response.data.transfers.items.length;
+                  },
+                  model: {
+                      id: "id",
+                      fields: {
+                          id: { type: "string", editable: false },
+                          name: { type: "string", editable: false },
+                          status: { type: "string", editable: false },
+                          initiator: { type: "string", editable: false },
+                          startDate: { type: "date", editable: false }
+                      }
+                  }
+              },
+              pageSize: 20
+          });
+        
+          var grid = $("#grid").kendoGrid({
+              dataSource: dataSource,
+              resizable: true,
+              groupable: true,
+              sortable: true,
+              columnMenu: true,
+              pageable: {
+                refresh: true,
+              },
+              filterable: {
+                mode: "row"
+              },
+              toolbar: kendo.template($("#template").html()),
+              columns: [{
+                  field: "id",
+                  title: "Process Id"
+              },
+              {
+                  field: "name",
+                  title: "Process Name"
+              },
+              {
+                  field: "status",
+                  title: "Status"
+              },
+              {
+                field: "initiator",
+                title: "Initiator"
+              },
+              {
+                  field: "startDate",
+                  title: "Start Date",
+                  format: "{0:MM/dd/yyyy}"
+              },
+              { command: [{ text: "View Details", click: viewTask }/*, { text: "Documents", click: viewDocuments }*/], 
+                title: " ", width: "280px" 
+              }]
+          });
+
+          grid.find(".k-grid-toolbar").on("click", ".k-pager-refresh", function (e) {
+              e.preventDefault();
+              grid.data("kendoGrid").dataSource.read();
+          });
+
+          grid.find(".k-grid-toolbar").on("click", "#logout", function (e) {
+              e.preventDefault();
+              keycloak.logout();
+          });
+        
+          var refreshGrid = function(e) {
+            grid.data('kendoGrid').dataSource.read()
+              .then(function() {
+                grid.data('kendoGrid').refresh();
+            });                        
+          };
+
+          function viewDocuments(e) {
+            e.preventDefault();
+            var tab = window.open("http://localhost:5000/#/irt", '_blank');
+            tab.focus();
+          }
+        
+          function viewTask(e) {
+              e.preventDefault();
+              var formioEl = $("#formio");
+            
+              var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+              console.log('Task json',JSON.stringify(dataItem, null, 2));
+            
+              var formKey = dataItem.formKey || "irt-due-dilligence-task";
+              var formId = dataItem.variables.find(v => v.name == 'formId').value; // "5c3d0b3a51bc770018dc473b";
+              var submissionId = dataItem.variables.find(v => v.name == 'submissionId').value; "5c3e079051bc770018dc4761";
+              var taskId = dataItem.id; //'08a99374-18e1-11e9-ab3c-d26afa2117c5';        
+              
+              var taskWindow = formioEl.kendoWindow({
+                    width: "600px",
+                    height: "600px",
+                    title: dataItem.name,
+                    visible: false,
+                    actions: [
+                        "Pin",
+                        "Minimize",
+                        "Maximize",
+                        "Close"
+                    ],
+                    //close: onClose
+                }).data("kendoWindow");
+            
+              formioLogin(baseUrl,"admin@example.com","password")
+                .then(function(profile) {
+                  return fetchForm(formId);
+                }).then(function(form) {
+                  return fetchSubmission(form.path, submissionId);
+                }).then(function(submission) {
+                  Formio.createForm(document.getElementById('formio'), baseUrl+'/'+formKey).then(function(form) {
+                    submission.data['taskId'] = taskId;
+
+                    form.submission = {
+                      data: submission.data
+                    };
+                    
+                    taskWindow.center()
+                            .open();  
+
+                    // What to do when the submit begins.
+                    form.on('submitDone', function(submission) {
+                      var submissionId=submission._id;
+
+                      // Load submission
+                      Formio.createForm(document.getElementById('formio'), baseUrl + '/' + formKey + '/submission/' + submissionId, {
+                        readOnly: true,
+                        viewAsHtml: true
+                      }).then(function(form) {
+                        refreshGrid();
+                        taskWindow.close();
+                      });;
+                   });
+                })
+              })
+              //wnd.content(detailsTemplate(dataItem));
+              //wnd.center().open();
+          }              
+      };
+      
+      var fetchForm = function(formId) {	
+        return fetch(baseUrl+'/form/'+formId, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-jwt-token': Formio.getToken()
+          },
+          mode: 'cors',
+        }).then(function(response) {
+          return response.json();
+        });
+      };
+
+      var fetchSubmission = function(formPath, submissionId) {
+        return fetch(baseUrl + '/' + formPath +'/submission/' + submissionId, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-jwt-token': Formio.getToken()
+          },
+          mode: 'cors',
+        }).then(function(response) {
+          return response.json();
+        });;
+      };
+
+      var formioLogin = function(baseUrl, email, password) {
+        return fetch(baseUrl+'/user/login', {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            mode: 'cors',
+            body: JSON.stringify({
+              "data": {
+                  "email": email,
+                  "password": password
+              }
+            })
+          }).then(function(response) {
+            Formio.setBaseUrl(baseUrl);
+            Formio.setProjectUrl(baseUrl);
+            Formio.setToken(response.headers.get('x-jwt-token'));
+
+            return response.json();
+          })
+      };      
+        
+      keycloak.init({ onLoad: 'login-required' })
+              .success(function(authenticated) {
+                console.log('Keycloak: ', authenticated ? 'authenticated' : 'not authenticated');
+                keycloak.loadUserProfile().then(function() {
+                  loadTaskGrid();
+                }, function() {
+                  alert('failed to load user profile');
+                });        
+            }).error(function() {
+                alert('failed to initialize');
+            });          
+    </script>
+  </div>
+</body>
+</html>
