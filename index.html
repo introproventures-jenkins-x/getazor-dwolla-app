@@ -80,7 +80,7 @@
       var GRAPHQL_QUERY = "query { " +
         "transfers: ProcessInstances(where: {" +
         "  processDefinitionKey: { EQ: \"getazor-dewolla-connector\" }" +
-        "    status: { IN: [RUNNING, COMPLETED] }" +
+        "    status: { IN: [RUNNING, COMPLETED, CANCELLED] }" +
         "}) {" +
         "  items: select {" +
         "    id" +
@@ -118,7 +118,6 @@
                       data: function() {
                         console.log('data');
                         return { 
-                          // query: isAdmin() ? ADMIN_TASKS_QUERY : USER_TASKS_QUERY,
                           query: GRAPHQL_QUERY,
                           variables: {"assignee": keycloak.profile.username }
                         };
