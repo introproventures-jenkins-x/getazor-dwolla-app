@@ -203,7 +203,10 @@
 
           grid.find(".k-grid-toolbar").on("click", ".k-pager-refresh", function (e) {
               e.preventDefault();
-              grid.data("kendoGrid").dataSource.read();
+              
+              keycloak.updateToken().then(result => {
+                grid.data('kendoGrid').dataSource.read();
+              }).catch(err => alert(err));
           });
 
           grid.find(".k-grid-toolbar").on("click", "#logout", function (e) {
@@ -219,16 +222,16 @@
               alert("Tranfer created: " + amount);
             }
           });
-          
-          var refreshGrid = function(e) {
+
+          var refreshGrid = function (e) {
             keycloak.updateToken().then(result => {
               grid.data('kendoGrid').dataSource.read().then(function () {
                 grid.data('kendoGrid').refresh();
-              });                        
+              });
             }).catch(err => alert(err));
           };
-
-          function viewDocuments(e) {
+          
+         function viewDocuments(e) {
             e.preventDefault();
             var tab = window.open("http://localhost:5000/#/irt", '_blank');
             tab.focus();
