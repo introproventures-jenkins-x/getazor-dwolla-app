@@ -70,7 +70,10 @@
            <a href="\\#" class="k-pager-refresh k-link k-button k-button-icon" title="Refresh"><span class="k-icon k-i-reload"></span></a>
         </div>
         <div class="toolbar">
-          <input type="button" id="logout" value="Logout" style="width: 60px"/>
+          <span>
+            <input type="button" id="test-transfer" value="Test Transfer" style="width: 80px"/>
+            <input type="button" id="logout" value="Logout" style="width: 60px"/>
+          </span>
         </div>
     </script>
     <script>
@@ -88,7 +91,7 @@
         "    name" +
         "    startDate" +
         "    initiator" +
-        "    activities {" +
+        "    activities(where: {activityType: {EQ: \"serviceTask\"}}) {" +
         "      id" +
         "      activityName" +
         "      status" +
@@ -204,10 +207,19 @@
           });
 
           grid.find(".k-grid-toolbar").on("click", "#logout", function (e) {
-              e.preventDefault();
-              keycloak.logout();
+            e.preventDefault();
+            keycloak.logout();
           });
-        
+
+          grid.find(".k-grid-toolbar").on("click", "#test-transfer", function (e) {
+            e.preventDefault();
+            var amount = prompt("Please enter amount", "9.99");
+
+            if (amount != null) {
+              alert("Tranfer created: " + amount);
+            }
+          });
+          
           var refreshGrid = function(e) {
             grid.data('kendoGrid').dataSource.read()
               .then(function() {
