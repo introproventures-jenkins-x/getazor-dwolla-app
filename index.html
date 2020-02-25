@@ -100,7 +100,7 @@
         "}" +
       "}";
 
-      var keycloak = Keycloak(serverUrl+'/keycloak.json');
+      var keycloak = Keycloak(serverUrl+'/graphiql/keycloak.json');
 
       var isAdmin = function() {
         return keycloak.profile.username == 'testadmin';
