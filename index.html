@@ -216,7 +216,8 @@
           });
 
           function detailInit(e) {
-            var detailRow = e.detailRow;
+            var detailRow = e.detailRow,
+                data = e.data;
 
             detailRow.find(".tabstrip").kendoTabStrip({
               animation: {
@@ -226,7 +227,7 @@
 
             detailRow.find(".activities").kendoGrid({
               dataSource: {
-                data: detailRow.activities
+                data: data.activities
               },
               editable: false,
               scrollable: true,
