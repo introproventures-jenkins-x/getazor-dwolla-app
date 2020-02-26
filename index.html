@@ -78,7 +78,7 @@
     </script>
     <script>
       var baseUrl = "https://formio.staging.gke.cloud.introproventures.com";
-      var serverUrl = 'https://gateway.staging.gke.cloud.introproventures.com/notifications';
+      var serverUrl = 'https://gateway.staging.gke.cloud.introproventures.com';
 
       var GRAPHQL_QUERY = "query { " +
         "transfers: ProcessInstances(where: {" +
@@ -105,7 +105,7 @@
         "}" +
       "}";
 
-      var keycloak = Keycloak(serverUrl+'/graphiql/keycloak.json');
+      var keycloak = Keycloak(serverUrl+'/notifications/graphiql/keycloak.json');
 
       var isAdmin = function() {
         return keycloak.profile.username == 'testadmin';
@@ -116,7 +116,7 @@
               transport: {
                   read: {
                       contentType: "application/json",
-                      url: serverUrl+"/graphql",
+                      url: serverUrl+"/notifications/graphql",
                       type: "POST",
                       data: function() {
                         console.log('data');
@@ -127,7 +127,7 @@
                       },
                       beforeSend: function(req) {
                           console.log('beforeSend');
-                          req.setRequestHeader('Authorization', 'Bearer '+keycloak.token);
+                          req.setRequestHeader('Authorization', 'Bearer ' + keycloak.token);
                       }
                   },
                   parameterMap: function(options, operation) {
@@ -203,7 +203,7 @@
 
           grid.find(".k-grid-toolbar").on("click", ".k-pager-refresh", function (e) {
               e.preventDefault();
-              
+
               keycloak.updateToken().then(result => {
                 grid.data('kendoGrid').dataSource.read();
               }).catch(err => alert(err));
@@ -219,9 +219,54 @@
             var amount = prompt("Please enter amount", "9.99");
 
             if (amount != null) {
-              alert("Tranfer created: " + amount);
+              testTransfer(amount).success(response => {
+                console.debug("Response: {}", response);
+                alert("Tranfer created: " + amount);
+                refreshGrid();
+              })
             }
           });
+
+          var testTransfer = function(transferAmount) {
+            var body = {
+              processDefinitionKey: "getazor-dewolla-connector",
+              payloadType: "StartProcessPayload",
+              businessKey: "123-212-344",
+              name: "Dwolla Payment Transfer #123-212-344",
+              variables: {
+                SourceFundingSourceId: "c5a8e8ef-c3dc-434d-a03d-146e463e33dc",
+                DestinationFundingSourceId: "aaa96272-8cf1-488f-8ec7-88afa7b1f252",
+                Amount: transferAmount
+              }
+            };
+
+            return keycloak.updateToken()
+              .then(result => {
+                // This example expects a GraphQL server at the path /graphql.
+                // Change this to point wherever you host your GraphQL server.
+                return fetch(serverUrl + "/getazor-dewolla-rb/v1/process-instances", {
+                  method: 'post',
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + keycloak.token
+                  },
+                  body: JSON.stringify(body),
+                  credentials: 'include',
+                }).then(function (response) {
+                  return response.text();
+                }).then(function (responseBody) {
+                  try {
+                    return JSON.parse(responseBody);
+                  } catch (error) {
+                    return responseBody;
+                  }
+                })
+              }).catch(err => {
+                alert(err);
+                console.error(err)
+              });
+          };
 
           var refreshGrid = function (e) {
             keycloak.updateToken().then(result => {
