@@ -219,11 +219,14 @@
             var amount = prompt("Please enter amount", "9.99");
 
             if (amount != null) {
-              testTransfer(amount).success(response => {
-                console.debug("Response: {}", response);
-                alert("Tranfer created: " + amount);
-                refreshGrid();
-              })
+              keycloak.updateToken()
+                .success(result => {
+                  testTransfer(amount).then(response => {
+                    console.debug("Response: {}", response);
+                    alert("Tranfer created: " + amount);
+                    refreshGrid();
+                  })
+              });
             }
           });
 
@@ -240,32 +243,28 @@
               }
             };
 
-            return keycloak.updateToken()
-              .success(result => {
-                // This example expects a GraphQL server at the path /graphql.
-                // Change this to point wherever you host your GraphQL server.
-                return fetch(serverUrl + "/getazor-dewolla-rb/v1/process-instances", {
-                  method: 'post',
-                  headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + keycloak.token
-                  },
-                  body: JSON.stringify(body),
-                  credentials: 'include',
-                }).then(function (response) {
-                  return response.text();
-                }).then(function (responseBody) {
-                  try {
-                    return JSON.parse(responseBody);
-                  } catch (error) {
-                    return responseBody;
-                  }
-                })
-              }).error(err => {
-                alert(err);
-                console.error(err)
-              });
+            return fetch(serverUrl + "/getazor-dewolla-rb/v1/process-instances", {
+              method: 'post',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + keycloak.token
+              },
+              body: JSON.stringify(body),
+              credentials: 'include',
+            }).then(function (response) {
+              return response.text();
+            }).then(function (responseBody) {
+              try {
+                return JSON.parse(responseBody);
+              } catch (error) {
+                return responseBody;
+              }
+            })
+            .catch(err => {
+              alert(err);
+              console.error(err)
+            });
           };
 
           var refreshGrid = function (e) {
