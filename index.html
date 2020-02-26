@@ -241,7 +241,7 @@
             };
 
             return keycloak.updateToken()
-              .then(result => {
+              .success(result => {
                 // This example expects a GraphQL server at the path /graphql.
                 // Change this to point wherever you host your GraphQL server.
                 return fetch(serverUrl + "/getazor-dewolla-rb/v1/process-instances", {
@@ -262,7 +262,7 @@
                     return responseBody;
                   }
                 })
-              }).catch(err => {
+              }).error(err => {
                 alert(err);
                 console.error(err)
               });
