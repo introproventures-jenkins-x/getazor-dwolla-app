@@ -219,7 +219,7 @@
                   title: "Start Date",
                   format: "{0:MM/dd/yyyy}"
               },
-              { command: [{ text: "View Bpmn", click: viewBpmn }], 
+              { command: [{ text: "View Bpmn Diagram", click: viewBpmn }], 
                 title: " ", width: "280px" 
               }]
           });
@@ -359,8 +359,8 @@
             var processInstanceId = dataItem.id;
 
             var bpmnWindow = el.kendoWindow({
-              width: "600px",
-              height: "600px",
+              width: "800px",
+              height: "300px",
               title: dataItem.name,
               visible: false,
               actions: [
