@@ -380,8 +380,11 @@
                 xhr.setRequestHeader("Authorization", "Bearer " + keycloak.token);
               },              
               success: function (data) {
-                el.innerHTML = new XMLSerializer().serializeToString(data.documentElement);
-
+                var svg = $(new XMLSerializer().serializeToString(data.documentElement));
+                
+                el.empty()
+                  .append(svg);
+                
                 bpmnWindow.center().open();  
               }
             });
