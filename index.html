@@ -63,6 +63,7 @@
   <div id="example">
     <div id="grid"></div>
     <div id="formio"></div>
+    <div id="bpmn"></div>
     <script type="text/x-kendo-template" id="template">
         <div class="refreshBtnContainer">
           <font size="6em">Azor Payment Transfers</font>
@@ -218,7 +219,7 @@
                   title: "Start Date",
                   format: "{0:MM/dd/yyyy}"
               },
-              { command: [{ text: "View Details", click: viewTask }/*, { text: "Documents", click: viewDocuments }*/], 
+              { command: [{ text: "View Bpmn", click: viewBpmn }], 
                 title: " ", width: "280px" 
               }]
           });
@@ -346,7 +347,48 @@
             var tab = window.open("http://localhost:5000/#/irt", '_blank');
             tab.focus();
           }
-        
+
+
+          function viewBpmn(e) {
+            e.preventDefault();
+            var el = $("#bpmn");
+
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            console.log('dataItem Json', JSON.stringify(dataItem, null, 2));
+
+            var processInstanceId = dataItem.id;
+
+            var bpmnWindow = el.kendoWindow({
+              width: "600px",
+              height: "600px",
+              title: dataItem.name,
+              visible: false,
+              actions: [
+                "Pin",
+                "Minimize",
+                "Maximize",
+                "Close"
+              ],
+              //close: onClose
+            }).data("bpmnWindow");
+
+            $.ajax({
+              url: serverUrl + "/query/v1/process-instances/" + processInstanceId + "/diagram", 
+              method: "GET",
+              crossDomain: true,
+              beforeSend: function (xhr) {
+                xhr.setRequestHeader("Authorization", "Bearer " + keycloak.token);
+              },              
+              success: function (data) {
+                var div = el.createElement("div");
+                div.innerHTML = new XMLSerializer().serializeToString(data.documentElement);
+                document.body.insertBefore(div, document.body.childNodes[0]);
+
+                detailsWindow.center().open();  
+              }
+            });
+          };
+
           function viewTask(e) {
               e.preventDefault();
               var formioEl = $("#formio");
@@ -356,7 +398,7 @@
             
               var formKey = dataItem.formKey || "irt-due-dilligence-task";
               var formId = dataItem.variables.find(v => v.name == 'formId').value; // "5c3d0b3a51bc770018dc473b";
-              var submissionId = dataItem.variables.find(v => v.name == 'submissionId').value; "5c3e079051bc770018dc4761";
+              var submissionId = dataItem.variables.find(v => v.name == 'submissionId').value; // "5c3e079051bc770018dc4761";
               var taskId = dataItem.id; //'08a99374-18e1-11e9-ab3c-d26afa2117c5';        
               
               var taskWindow = formioEl.kendoWindow({
@@ -387,7 +429,7 @@
                     };
                     
                     taskWindow.center()
-                            .open();  
+                              .open();  
 
                     // What to do when the submit begins.
                     form.on('submitDone', function(submission) {
