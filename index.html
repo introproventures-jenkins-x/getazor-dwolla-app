@@ -81,6 +81,9 @@
               <li class="k-state-active">
                   Activities
               </li>
+              <li>
+                  Variables
+              </li>
           </ul>
           <div>
               <div class="activities"></div>
@@ -110,6 +113,8 @@
         "      id" +
         "      activityName" +
         "      status" +
+        "      startedDate" +
+        "      completedDate" +
         "    }" +
         "    variables {" +
         "      id" +
@@ -241,6 +246,8 @@
                 { field: "id", title: "Id", width: "180px" },
                 { field: "activityName", title: "Activity Name", width: "240px" },
                 { field: "status", title: "Status" },
+                { field: "startedDate", title: "Started Date" },
+                { field: "completedDate", title: "Completed Date" },
               ]
             });
             detailRow.find(".variables").kendoGrid({
