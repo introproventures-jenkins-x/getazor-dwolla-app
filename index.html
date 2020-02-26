@@ -75,6 +75,32 @@
           </span>
         </div>
     </script>
+    <script type="text/x-kendo-template" id="details-template">
+      <div class="tabstrip">
+          <ul>
+              <li class="k-state-active">
+                  Activities
+              </li>
+              <li>
+                  Transfer Details
+              </li>
+          </ul>
+          <div>
+              <div class="activities"></div>
+          </div>
+          <div>
+              <div class='employee-details'>
+                  <ul>
+                      <li><label>TransferId:</label>#= TransferId #</li>
+                      <li><label>SourceFundingSourceId:</label>#= SourceFundingSourceId #</li>
+                      <li><label>DestinationFundingSourceId:</label>#= DestinationFundingSourceId #</li>
+                      <li><label>Amount:</label>#= Amount #</li>
+                  </ul>
+              </div>
+          </div>
+      </div>
+    </script>
+
     <script>
       var baseUrl = "https://formio.staging.gke.cloud.introproventures.com";
       var serverUrl = 'https://gateway.staging.gke.cloud.introproventures.com';
@@ -167,6 +193,8 @@
               groupable: true,
               sortable: true,
               columnMenu: true,
+              detailTemplate: kendo.template($("#detail-template").html()),
+              detailInit: detailInit,
               pageable: {
                 refresh: true,
               },
@@ -187,8 +215,8 @@
                   title: "Status"
               },
               {
-                field: "initiator",
-                title: "Initiator"
+                  field: "initiator",
+                  title: "Initiator"
               },
               {
                   field: "startDate",
@@ -199,6 +227,31 @@
                 title: " ", width: "280px" 
               }]
           });
+
+          function detailInit(e) {
+            var detailRow = e.detailRow;
+
+            detailRow.find(".tabstrip").kendoTabStrip({
+              animation: {
+                open: { effects: "fadeIn" }
+              }
+            });
+
+            detailRow.find(".activities").kendoGrid({
+              dataSource: {
+                data: detailRow.activities
+              },
+              editable: false,
+              scrollable: true,
+              sortable: true,
+              pageable: false,
+              columns: [
+                { field: "id", title: "Id", width: "70px" },
+                { field: "name", title: "Activity", width: "110px" },
+                { field: "status", title: "Status" },
+              ]
+            });
+          }          
 
           grid.find(".k-grid-toolbar").on("click", ".k-pager-refresh", function (e) {
               e.preventDefault();
@@ -402,6 +455,33 @@
                 alert('failed to initialize');
             });          
     </script>
+    <style>
+      .k-detail-cell .k-tabstrip .k-content {
+        padding: 0.2em;
+      }
+
+      .employee-details ul {
+        list-style: none;
+        font-style: italic;
+        margin: 15px;
+        padding: 0;
+      }
+
+      .employee-details ul li {
+        margin: 0;
+        line-height: 1.7em;
+      }
+
+      .employee-details label {
+        display: inline-block;
+        width: 90px;
+        padding-right: 10px;
+        text-align: right;
+        font-style: normal;
+        font-weight: bold;
+      }
+    </style>
+
   </div>
 </body>
 </html>
