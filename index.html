@@ -372,21 +372,23 @@
               //close: onClose
             }).data("kendoWindow");
 
-            $.ajax({
-              url: serverUrl + "/query/v1/process-instances/" + processInstanceId + "/diagram", 
-              method: "GET",
-              crossDomain: true,
-              beforeSend: function (xhr) {
-                xhr.setRequestHeader("Authorization", "Bearer " + keycloak.token);
-              },              
-              success: function (data) {
-                var svg = $(new XMLSerializer().serializeToString(data.documentElement));
-                
-                el.empty()
-                  .append(svg);
-                
-                bpmnWindow.center().open();  
-              }
+            keycloak.updateToken().success(result => {
+              $.ajax({
+                url: serverUrl + "/query/v1/process-instances/" + processInstanceId + "/diagram",
+                method: "GET",
+                crossDomain: true,
+                beforeSend: function (xhr) {
+                  xhr.setRequestHeader("Authorization", "Bearer " + keycloak.token);
+                },
+                success: function (data) {
+                  var svg = $(new XMLSerializer().serializeToString(data.documentElement));
+
+                  el.empty()
+                    .append(svg);
+
+                  bpmnWindow.center().open();
+                }
+              });
             });
           };
 
