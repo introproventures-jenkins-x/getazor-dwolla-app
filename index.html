@@ -380,7 +380,7 @@
                 xhr.setRequestHeader("Authorization", "Bearer " + keycloak.token);
               },              
               success: function (data) {
-                var div = el.createElement("div");
+                var div = el.append("<div/>");
                 div.innerHTML = new XMLSerializer().serializeToString(data.documentElement);
                 document.body.insertBefore(div, document.body.childNodes[0]);
 
