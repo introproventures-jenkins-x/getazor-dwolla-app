@@ -169,6 +169,18 @@
                       console.log('total');
                       return response.data.transfers.items.length;
                   },
+                  parse: function (data) {
+                    var result = [];
+                    data.map(item => {
+                      item.variables.map(variable => {
+                        item['variables_' + variable.name] = variable.value;
+                      });
+
+                      result.push(item)
+                    });
+
+                    return result;
+                  },
                   model: {
                       id: "id",
                       fields: {
@@ -176,7 +188,8 @@
                           name: { type: "string", editable: false },
                           status: { type: "string", editable: false },
                           initiator: { type: "string", editable: false },
-                          startDate: { type: "date", editable: false }
+                          startDate: { type: "date", editable: false },
+                          variables_Amount: { type: "string", editable: false }
                       }
                   }
               },
@@ -213,6 +226,10 @@
               {
                   field: "initiator",
                   title: "Initiator"
+              },
+              {
+                  field: "variables_Amount",
+                  title: "Transfer Amount"
               },
               {
                   field: "startDate",
