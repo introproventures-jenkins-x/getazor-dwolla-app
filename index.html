@@ -172,7 +172,7 @@
                   parse: function (response) {
                     var data = response.data.transfers.items;
                     var result = [];
-                    
+
                     data.map(item => {
                       item.variables.map(variable => {
                         item['variables_' + variable.name] = variable.value;
@@ -240,7 +240,7 @@
                   title: "Start Date",
                   format: "{0:MM/dd/yyyy}"
               },
-              { command: [{ text: "View Bpmn Diagram", click: viewBpmn }], 
+              { command: [{ text: "View Bpmn", click: viewBpmn }], 
                 title: " ", width: "280px" 
               }]
           });
