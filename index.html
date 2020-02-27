@@ -169,8 +169,10 @@
                       console.log('total');
                       return response.data.transfers.items.length;
                   },
-                  parse: function (data) {
+                  parse: function (response) {
+                    var data = response.data.transfers.items;
                     var result = [];
+                    
                     data.map(item => {
                       item.variables.map(variable => {
                         item['variables_' + variable.name] = variable.value;
@@ -179,7 +181,9 @@
                       result.push(item)
                     });
 
-                    return result;
+                    response.data.transfers.items = result;
+
+                    return response;
                   },
                   model: {
                       id: "id",
